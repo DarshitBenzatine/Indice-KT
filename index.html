@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indice App Backend - Knowledge Transfer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #8b5cf6;
+            --accent-color: #ec4899;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-hover: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --border-color: #334155;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: var(--text-primary);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        /* Smooth scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* Floating particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 20s infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.3;
+            }
+            90% {
+                opacity: 0.3;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        /* Layout Container */
+        .layout-wrapper {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 300px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border-color);
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 2rem 1.5rem;
+            z-index: 100;
+            box-shadow: 5px 0 20px rgba(0, 0, 0, 0.3);
+            animation: slideInLeft 0.5s ease;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-color);
+        }
+
+        /* Table of Contents */
+        .toc {
+            background: transparent;
+            border: none;
+            padding: 0;
+            margin: 0;
+            box-shadow: none;
+        }
+
+        .toc h2 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            background: var(--bg-card);
+            padding-top: 0;
+            z-index: 10;
+        }
+
+        .toc ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding: 0;
+        }
+
+        .toc li {
+            padding: 0;
+        }
+
+        .toc a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .toc a:hover {
+            color: var(--primary-color);
+            background: var(--bg-hover);
+            transform: translateX(5px);
+        }
+
+        .toc a.active {
+            color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.1);
+            border-left: 3px solid var(--primary-color);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            margin-left: 300px;
+            padding: 2rem 3rem;
+            max-width: calc(100% - 300px);
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding: 3rem 2rem 2rem;
+            margin-bottom: 3rem;
+            animation: fadeInDown 1s ease;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            font-weight: 700;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.5)); }
+            to { filter: drop-shadow(0 0 20px rgba(236, 72, 153, 0.8)); }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Sections */
+        section {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeInUp 1s ease both;
+            animation-delay: calc(var(--delay, 0) * 0.1s);
+        }
+
+        section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(99, 102, 241, 0.2);
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        h3 {
+            font-size: 1.6rem;
+            margin: 2rem 0 1rem;
+            color: var(--secondary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        h4 {
+            font-size: 1.3rem;
+            margin: 1.5rem 0 1rem;
+            color: var(--accent-color);
+        }
+
+        /* Priority badges */
+        .priority {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .priority.critical {
+            background: var(--danger);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        .priority.important {
+            background: var(--warning);
+            color: white;
+        }
+
+        .priority.moderate {
+            background: var(--info);
+            color: white;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Lists */
+        ul, ol {
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        li {
+            margin-bottom: 0.8rem;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+        }
+
+        li:hover {
+            color: var(--text-primary);
+        }
+
+        /* Code blocks */
+        pre {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            position: relative;
+            animation: slideInLeft 0.5s ease;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 5px;
+        }
+
+        pre code {
+            background: transparent;
+            color: var(--text-primary);
+            padding: 0;
+        }
+
+        /* Cards for modules */
+        .module-card {
+            background: var(--bg-dark);
+            border-left: 4px solid var(--primary-color);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            transition: all 0.3s ease;
+            animation: fadeInRight 0.5s ease both;
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .module-card:hover {
+            border-left-color: var(--accent-color);
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(99, 102, 241, 0.2);
+        }
+
+        .module-card h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin: 0.3rem;
+        }
+
+        .badge-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .badge-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .badge-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .badge-info {
+            background: var(--info);
+            color: white;
+        }
+
+        /* Links */
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid transparent;
+        }
+
+        a:hover {
+            color: var(--accent-color);
+            border-bottom-color: var(--accent-color);
+        }
+
+        /* Horizontal rule */
+        hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+            margin: 3rem 0;
+            animation: expand 1s ease;
+        }
+
+        @keyframes expand {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--bg-dark);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: var(--bg-hover);
+        }
+
+        /* Scroll to top button */
+        .scroll-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 50px;
+            height: 50px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 999;
+            box-shadow: 0 5px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .scroll-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .scroll-top:hover {
+            background: var(--accent-color);
+            transform: translateY(-5px);
+        }
+
+        @media (max-width: 1024px) {
+            .scroll-top {
+                right: 1rem;
+                bottom: 1rem;
+            }
+        }
+
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1001;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            box-shadow: 0 5px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .menu-toggle:hover {
+            background: var(--accent-color);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                max-width: 100%;
+                padding: 2rem 1.5rem;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            section {
+                padding: 1.5rem;
+            }
+
+            .sidebar {
+                width: 280px;
+            }
+        }
+
+        /* Highlight important text */
+        strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Emoji styling */
+        .emoji {
+            font-size: 1.2em;
+            margin-right: 0.5rem;
+        }
+
+        /* Progress indicator */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            z-index: 1001;
+            transition: width 0.1s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="particles" id="particles"></div>
+    <div class="progress-bar" id="progressBar"></div>
+    <button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">☰</button>
+
+    <div class="layout-wrapper">
+        <!-- Sidebar with Table of Contents -->
+        <aside class="sidebar" id="sidebar">
+            <div class="toc">
+                <h2>📑 Table of Contents</h2>
+                <ul>
+                    <li><a href="#overview" onclick="setActiveLink(this)">📋 Project Overview</a></li>
+                    <li><a href="#purpose" onclick="setActiveLink(this)">🎯 Purpose of the Project</a></li>
+                    <li><a href="#architecture" onclick="setActiveLink(this)">🏗️ Architecture Overview</a></li>
+                    <li><a href="#modules" onclick="setActiveLink(this)">🔑 Critical Modules</a></li>
+                    <li><a href="#structure" onclick="setActiveLink(this)">📁 Project Structure</a></li>
+                    <li><a href="#auth" onclick="setActiveLink(this)">🔐 Authentication & Authorization</a></li>
+                    <li><a href="#database" onclick="setActiveLink(this)">🗄️ Database Architecture</a></li>
+                    <li><a href="#jobs" onclick="setActiveLink(this)">🔄 Background Jobs & Cron</a></li>
+                    <li><a href="#api" onclick="setActiveLink(this)">📡 API Versioning</a></li>
+                    <li><a href="#notifications" onclick="setActiveLink(this)">🔔 Notification System</a></li>
+                    <li><a href="#calendar" onclick="setActiveLink(this)">📅 Calendar Integration</a></li>
+                    <li><a href="#setup" onclick="setActiveLink(this)">🛠️ Development Setup</a></li>
+                    <li><a href="#critical" onclick="setActiveLink(this)">🚨 Critical Areas to Understand</a></li>
+                    <li><a href="#patterns" onclick="setActiveLink(this)">📝 Code Patterns & Conventions</a></li>
+                    <li><a href="#files" onclick="setActiveLink(this)">🔍 Key Files to Study</a></li>
+                    <li><a href="#issues" onclick="setActiveLink(this)">🐛 Common Issues & Solutions</a></li>
+                    <li><a href="#flow" onclick="setActiveLink(this)">📊 Data Flow Examples</a></li>
+                    <li><a href="#learning" onclick="setActiveLink(this)">🎓 Learning Path for New Developers</a></li>
+                    <li><a href="#support" onclick="setActiveLink(this)">📞 Support & Resources</a></li>
+                    <li><a href="#notes" onclick="setActiveLink(this)">⚠️ Important Notes</a></li>
+                    <li><a href="#next" onclick="setActiveLink(this)">🚀 Next Steps</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header>
+                <h1>📋 Indice App Backend</h1>
+                <p style="font-size: 1.2rem; color: var(--text-secondary);">Knowledge Transfer Document</p>
+            </header>
+
+        <!-- Project Overview -->
+        <section id="overview" style="--delay: 1">
+            <h2><span class="emoji">📋</span>Project Overview</h2>
+            <p><strong>Project Name:</strong> Indice App Backend (Ticket Management & Resource Booking System)</p>
+            <p><strong>Framework:</strong> Laravel 11.x</p>
+            <p><strong>PHP Version:</strong> 8.2+</p>
+            <p><strong>Architecture:</strong> Multi-tenant SaaS application with dual database connections</p>
+        </section>
+
+        <!-- Purpose -->
+        <section id="purpose" style="--delay: 2">
+            <h2><span class="emoji">🎯</span>Purpose of the Project</h2>
+            <p>This is a <strong>comprehensive multi-tenant ticket management and resource booking system</strong> designed for service-based businesses. The application serves as a backend API for:</p>
+            <ol>
+                <li><strong>Ticket/Work Order Management</strong> - Create, track, and manage service tickets/work orders</li>
+                <li><strong>Resource & Service Booking</strong> - Book resources (equipment, staff) and services with calendar integration</li>
+                <li><strong>Time Tracking</strong> - Track time spent on tickets and user work hours</li>
+                <li><strong>Communication</strong> - Real-time messaging within tickets</li>
+                <li><strong>User Management</strong> - Multi-tenant user management with instance-based isolation</li>
+                <li><strong>Notifications</strong> - Push notifications via Firebase Cloud Messaging (FCM)</li>
+                <li><strong>Work Planning</strong> - User work plans and scheduling</li>
+                <li><strong>Polling System</strong> - Create polls within tickets for decision-making</li>
+            </ol>
+        </section>
+
+        <!-- Architecture -->
+        <section id="architecture" style="--delay: 3">
+            <h2><span class="emoji">🏗️</span>Architecture Overview</h2>
+            
+            <h3>Multi-Tenant Architecture</h3>
+            <ul>
+                <li><strong>Instance-based isolation:</strong> Each client has an <code>instance_id</code> that isolates their data</li>
+                <li><strong>Dual Database Setup:</strong>
+                    <ul>
+                        <li>Primary DB (<code>mysql</code>): Main application data</li>
+                        <li>Secondary DB (<code>mysql_data</code>): Resource booking and related data</li>
+                    </ul>
+                </li>
+                <li><strong>API Versioning:</strong> Supports V1, V2, and V3 API versions</li>
+            </ul>
+
+            <h3>Key Technologies</h3>
+            <ul>
+                <li><strong>Laravel Passport:</strong> OAuth2 authentication</li>
+                <li><strong>Firebase Cloud Messaging:</strong> Push notifications</li>
+                <li><strong>Google Calendar API:</strong> Calendar integration for bookings</li>
+                <li><strong>PDF Generation:</strong> DomPDF for ticket PDFs</li>
+                <li><strong>Image Processing:</strong> Intervention Image</li>
+                <li><strong>Queue System:</strong> Background job processing</li>
+                <li><strong>Laravel Telescope:</strong> Debugging and monitoring (dev)</li>
+            </ul>
+        </section>
+
+        <!-- Critical Modules -->
+        <section id="modules" style="--delay: 4">
+            <h2><span class="emoji">🔑</span>Critical Modules</h2>
+
+            <div class="module-card">
+                <h3>1. Ticket Management Module <span class="priority critical">⭐⭐⭐ MOST CRITICAL</span></h3>
+                <p><strong>Location:</strong> <code>app/Http/Controllers/TicketController.php</code>, <code>app/Ticket.php</code></p>
+                <p><strong>Purpose:</strong> Core business logic for creating and managing service tickets/work orders</p>
+                <p><strong>Key Features:</strong></p>
+                <ul>
+                    <li>Create tickets with multiple types (standard, expert, support)</li>
+                    <li>Ticket status management</li>
+                    <li>Task management within tickets</li>
+                    <li>QR code generation for tickets</li>
+                    <li>PDF generation for tickets</li>
+                    <li>Ticket information (location, images)</li>
+                    <li>Ticket materials tracking</li>
+                    <li>Ticket polling</li>
+                    <li>Time tracking per ticket</li>
+                    <li>Message/chat within tickets</li>
+                </ul>
+                <p><strong>Related Models:</strong></p>
+                <ul>
+                    <li><code>Ticket</code> (app/Ticket.php)</li>
+                    <li><code>Tasks</code> (app/Models/Tasks.php)</li>
+                    <li><code>TicketInformation</code> (app/Models/TicketInformation.php)</li>
+                    <li><code>TicketMaterials</code> (app/Models/TicketMaterials.php)</li>
+                    <li><code>TicketsTimetracking</code> (app/Models/TicketsTimetracking.php)</li>
+                    <li><code>TicketPoll</code> (app/Models/TicketPoll.php)</li>
+                    <li><code>TicketsUsers</code> (app/Models/TicketsUsers.php)</li>
+                </ul>
+                <p><strong>Critical Routes:</strong></p>
+                <ul>
+                    <li><code>POST /api/ticket</code> - Create ticket</li>
+                    <li><code>GET /api/ticket/{id}/{user_id}/{user_type}</code> - Get ticket details</li>
+                    <li><code>POST /api/update_ticket/{id}</code> - Update ticket</li>
+                    <li><code>POST /api/update_ticket_status/{id}</code> - Update status</li>
+                    <li><code>POST /api/ticket-pdf</code> - Generate PDF</li>
+                </ul>
+            </div>
+
+            <div class="module-card">
+                <h3>2. User Management Module <span class="priority critical">⭐⭐⭐ CRITICAL</span></h3>
+                <p><strong>Location:</strong> <code>app/Http/Controllers/UserController.php</code>, <code>app/Http/Controllers/RegisterController.php</code>, <code>app/Models/User.php</code></p>
+                <p><strong>Purpose:</strong> Multi-tenant user management with authentication</p>
+                <p><strong>Key Features:</strong></p>
+                <ul>
+                    <li>User registration and login (OAuth2 via Passport)</li>
+                    <li>Instance-based user isolation</li>
+                    <li>User profile management</li>
+                    <li>FCM token management for push notifications</li>
+                    <li>User time tracking</li>
+                    <li>User work plans</li>
+                    <li>User holidays/leaves management</li>
+                    <li>CMS integration for user management</li>
+                    <li>Superior/substitute user relationships</li>
+                </ul>
+                <p><strong>Related Models:</strong></p>
+                <ul>
+                    <li><code>User</code> (app/Models/User.php)</li>
+                    <li><code>UsersTimeTracking</code> (app/Models/UsersTimeTracking.php)</li>
+                    <li><code>UserWorkPlan</code> (app/Models/UserWorkPlan.php)</li>
+                    <li><code>UserHolidayTrackerDetails</code> (app/Models/UserHolidayTrackerDetails.php)</li>
+                </ul>
+                <p><strong>Critical Routes:</strong></p>
+                <ul>
+                    <li><code>POST /api/register</code> - Register user</li>
+                    <li><code>POST /api/login</code> - Login</li>
+                    <li><code>POST /api/user-profile</code> - Get user profile</li>
+                    <li><code>POST /api/updateProfile</code> - Update profile</li>
+                    <li><code>POST /api/user-list</code> - List users (admin)</li>
+                </ul>
+            </div>
+
+            <div class="module-card">
+                <h3>3. Resource & Booking Module <span class="priority critical">⭐⭐⭐ CRITICAL</span></h3>
+                <p><strong>Location:</strong> <code>app/Http/Controllers/ResourcesController.php</code>, <code>app/Http/Controllers/ResourcesEventsController.php</code>, <code>app/Http/Controllers/ServicesController.php</code></p>
+                <p><strong>Purpose:</strong> Resource and service booking system with calendar integration</p>
+                <p><strong>Key Features:</strong></p>
+                <ul>
+                    <li>Resource management (equipment, staff, etc.)</li>
+                    <li>Service management</li>
+                    <li>Booking/appointment creation</li>
+                    <li>Availability checking (dates, times, resources)</li>
+                    <li>Google Calendar sync</li>
+                    <li>Group-based resource management</li>
+                    <li>Service master templates</li>
+                    <li>User-based events (alternative to resource-based)</li>
+                </ul>
+                <p><strong>Related Models:</strong></p>
+                <ul>
+                    <li><code>Resource</code> (app/Resource.php)</li>
+                    <li><code>ResourcesEvents</code> (app/ResourcesEvents.php)</li>
+                    <li><code>Services</code> (app/Services.php)</li>
+                    <li><code>MasterServices</code> (app/Models/MasterServices.php)</li>
+                    <li><code>Group</code> (app/Group.php)</li>
+                </ul>
+                <p><strong>Critical Routes:</strong></p>
+                <ul>
+                    <li><code>POST /api/getAvailableResource</code> - Check available resources</li>
+                    <li><code>POST /api/getAvailableTimes</code> - Get available time slots</li>
+                    <li><code>POST /api/resources-events</code> - Create booking</li>
+                    <li><code>POST /api/userEvents</code> - Get user bookings</li>
+                    <li><code>POST /api/sync-google-calendar</code> - Sync with Google Calendar</li>
+                </ul>
+            </div>
+
+            <div class="module-card">
+                <h3>4. Messaging Module <span class="priority important">⭐⭐ IMPORTANT</span></h3>
+                <p><strong>Location:</strong> <code>app/Http/Controllers/MessagesController.php</code>, <code>app/Message.php</code></p>
+                <p><strong>Purpose:</strong> Real-time messaging within tickets</p>
+                <p><strong>Key Features:</strong></p>
+                <ul>
+                    <li>Send/receive messages within tickets</li>
+                    <li>Message search</li>
+                    <li>Read/unread status</li>
+                    <li>Task completion via messages</li>
+                    <li>Audio message support (with transcription job)</li>
+                    <li>File attachments</li>
+                </ul>
+                <p><strong>Related Models:</strong></p>
+                <ul>
+                    <li><code>Message</code> (app/Message.php)</li>
+                </ul>
+                <p><strong>Critical Routes:</strong></p>
+                <ul>
+                    <li><code>POST /api/messages</code> - Send message</li>
+                    <li><code>POST /api/get-ticket-messages</code> - Get messages</li>
+                    <li><code>POST /api/read-message</code> - Mark as read</li>
+                    <li><code>POST /api/send-task-message</code> - Complete task via message</li>
+                </ul>
+            </div>
+
+            <div class="module-card">
+                <h3>5. Notification Module <span class="priority important">⭐⭐ IMPORTANT</span></h3>
+                <p><strong>Location:</strong> <code>app/Http/Controllers/NotificationController.php</code>, <code>app/Models/Notification.php</code></p>
+                <p><strong>Purpose:</strong> Push notification system using Firebase</p>
+                <p><strong>Key Features:</strong></p>
+                <ul>
+                    <li>FCM push notifications</li>
+                    <li>Topic-based notifications</li>
+                    <li>Notification badges/counts</li>
+                    <li>Scheduled notifications (cron jobs)</li>
+                    <li>Notification analytics</li>
+                    <li>Multi-language support</li>
+                </ul>
+                <p><strong>Related Models:</strong></p>
+                <ul>
+                    <li><code>Notification</code> (app/Models/Notification.php)</li>
+                    <li><code>NotificationJob</code> (app/Models/NotificationJob.php)</li>
+                    <li><code>CronePushNotification</code> (app/Models/CronePushNotification.php)</li>
+                </ul>
+                <p><strong>Critical Routes:</strong></p>
+                <ul>
+                    <li><code>POST /api/notification</code> - Send notification</li>
+                    <li><code>POST /api/all-notification</code> - Get notifications</li>
+                    <li><code>POST /api/read-notification</code> - Mark as read</li>
+                    <li><code>GET /api/notification-cron</code> - Cron endpoint</li>
+                </ul>
+                <p><strong>Background Jobs:</strong></p>
+                <ul>
+                    <li><code>SendNotificationPush</code> (app/Jobs/SendNotificationPush.php)</li>
+                    <li><code>SendPushNotificationUsingNode</code> (app/Jobs/SendPushNotificationUsingNode.php)</li>
+                </ul>
+            </div>
+
+            <div class="module-card">
+                <h3>6. Time Tracking Module <span class="priority important">⭐⭐ IMPORTANT</span></h3>
+                <p><strong>Location:</strong> <code>app/Http/Controllers/TicketsTimetrackingController.php</code>, <code>app/Http/Controllers/UserWorkTimeTrackingController.php</code></p>
+                <p><strong>Purpose:</strong> Track time spent on tickets and user work hours</p>
+                <p><strong>Key Features:</strong></p>
+                <ul>
+                    <li>Ticket time tracking</li>
+                    <li>User daily/monthly time sheets</li>
+                    <li>Work plan time tracking</li>
+                    <li>Time tracking PDF reports</li>
+                    <li>Short message/minute tracking</li>
+                    <li>Overtime tracking</li>
+                </ul>
+                <p><strong>Related Models:</strong></p>
+                <ul>
+                    <li><code>TicketsTimetracking</code> (app/Models/TicketsTimetracking.php)</li>
+                    <li><code>UsersTimeTracking</code> (app/Models/UsersTimeTracking.php)</li>
+                    <li><code>UserDailyTimeSheet</code> (app/Models/UserDailyTimeSheet.php)</li>
+                    <li><code>UserMonthlyTimeSheetDetails</code> (app/Models/UserMonthlyTimeSheetDetails.php)</li>
+                    <li><code>UserWorkTimeTracking</code> (app/Models/UserWorkTimeTracking.php)</li>
+                </ul>
+                <p><strong>Critical Routes:</strong></p>
+                <ul>
+                    <li><code>POST /api/time-tracking</code> - Track ticket time</li>
+                    <li><code>POST /api/user-time-tracking</code> - Track user time</li>
+                    <li><code>POST /api/user-time-tracking-pdf</code> - Generate time report PDF</li>
+                </ul>
+            </div>
+
+            <div class="module-card">
+                <h3>7. Work Plan Module <span class="priority moderate">⭐ MODERATE</span></h3>
+                <p><strong>Location:</strong> <code>app/Http/Controllers/WorkPlanController.php</code>, <code>app/Http/Controllers/UserWorkPlanController.php</code></p>
+                <p><strong>Purpose:</strong> User work planning and scheduling</p>
+                <p><strong>Key Features:</strong></p>
+                <ul>
+                    <li>Work plan titles</li>
+                    <li>Work plan details</li>
+                    <li>User work plan assignment</li>
+                    <li>Work plan time tracking</li>
+                </ul>
+                <p><strong>Related Models:</strong></p>
+                <ul>
+                    <li><code>WorkPlan</code> (app/Models/WorkPlan.php)</li>
+                    <li><code>WorkPlanTitle</code> (app/Models/WorkPlanTitle.php)</li>
+                    <li><code>UserWorkPlan</code> (app/Models/UserWorkPlan.php)</li>
+                </ul>
+            </div>
+
+            <div class="module-card">
+                <h3>8. Poll Module <span class="priority moderate">⭐ MODERATE</span></h3>
+                <p><strong>Location:</strong> <code>app/Http/Controllers/PollMasterController.php</code>, <code>app/Http/Controllers/TicketPollController.php</code></p>
+                <p><strong>Purpose:</strong> Create polls for decision-making</p>
+                <p><strong>Key Features:</strong></p>
+                <ul>
+                    <li>Poll master templates</li>
+                    <li>Ticket-specific polls</li>
+                    <li>Poll results tracking</li>
+                </ul>
+                <p><strong>Related Models:</strong></p>
+                <ul>
+                    <li><code>PollMaster</code> (app/Models/PollMaster.php)</li>
+                    <li><code>TicketPoll</code> (app/Models/TicketPoll.php)</li>
+                    <li><code>PollData</code> (app/Models/PollData.php)</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Project Structure -->
+        <section id="structure" style="--delay: 5">
+            <h2><span class="emoji">📁</span>Project Structure</h2>
+            <pre><code>indice-app-backend/
+├── app/
+│   ├── Console/Commands/          # Artisan commands (cron jobs)
+│   ├── Exceptions/                # Custom exceptions
+│   ├── Helpers/                   # Helper functions
+│   ├── Http/
+│   │   ├── Controllers/           # Main controllers
+│   │   │   ├── V2/               # API V2 controllers
+│   │   │   └── V3/               # API V3 controllers
+│   │   ├── Middleware/            # Custom middleware
+│   │   └── Requests/              # Form requests
+│   ├── Jobs/                      # Queue jobs
+│   ├── Mail/                      # Email classes
+│   ├── Models/                    # Eloquent models
+│   ├── Providers/                 # Service providers
+│   ├── Resource.php               # Resource model (legacy)
+│   ├── Ticket.php                 # Ticket model (legacy)
+│   └── Utils/                     # Utility classes
+├── config/                        # Configuration files
+│   ├── constants.php              # App constants
+│   ├── google-calendar.php        # Google Calendar config
+│   └── ...
+├── database/
+│   ├── migrations/                # Database migrations (370+ files)
+│   └── seeders/                   # Database seeders
+├── routes/
+│   ├── api.php                    # API V1 routes
+│   ├── api_V2.php                 # API V2 routes
+│   ├── api_V3.php                 # API V3 routes
+│   └── channels.php               # Broadcasting channels
+└── storage/                       # Storage (logs, files, etc.)</code></pre>
+        </section>
+
+        <!-- Authentication -->
+        <section id="auth" style="--delay: 6">
+            <h2><span class="emoji">🔐</span>Authentication & Authorization</h2>
+            <h3>Authentication Method</h3>
+            <ul>
+                <li><strong>Laravel Passport (OAuth2)</strong></li>
+                <li>Token-based authentication</li>
+                <li>Routes protected with <code>auth:api</code> middleware</li>
+            </ul>
+            <h3>Key Authentication Routes</h3>
+            <ul>
+                <li><code>POST /api/oauth/token</code> - Get access token</li>
+                <li><code>POST /api/login</code> - User login</li>
+                <li><code>POST /api/register</code> - User registration</li>
+                <li><code>POST /api/logout</code> - User logout</li>
+            </ul>
+            <h3>Multi-Tenancy</h3>
+            <ul>
+                <li>All data is isolated by <code>instance_id</code></li>
+                <li>Users belong to specific instances</li>
+                <li>Resources, tickets, bookings are instance-specific</li>
+            </ul>
+        </section>
+
+        <!-- Database -->
+        <section id="database" style="--delay: 7">
+            <h2><span class="emoji">🗄️</span>Database Architecture</h2>
+            <h3>Dual Database Setup</h3>
+            <p><strong>Primary Database (<code>mysql</code>):</strong></p>
+            <ul>
+                <li>User management</li>
+                <li>Tickets</li>
+                <li>Messages</li>
+                <li>Notifications</li>
+                <li>Time tracking</li>
+                <li>Work plans</li>
+                <li>Polls</li>
+            </ul>
+            <p><strong>Secondary Database (<code>mysql_data</code>):</strong></p>
+            <ul>
+                <li>Resources</li>
+                <li>Services</li>
+                <li>Resource events (bookings)</li>
+                <li>Groups</li>
+                <li>Resource services mapping</li>
+            </ul>
+            <h3>Key Database Concepts</h3>
+            <ul>
+                <li><strong>Soft Deletes:</strong> Many models use soft deletes</li>
+                <li><strong>Timestamps:</strong> All tables have <code>created_at</code> and <code>updated_at</code></li>
+                <li><strong>Instance Isolation:</strong> Most tables have <code>instance_id</code> column</li>
+                <li><strong>Relationships:</strong> Extensive use of Eloquent relationships</li>
+            </ul>
+        </section>
+
+        <!-- Background Jobs -->
+        <section id="jobs" style="--delay: 8">
+            <h2><span class="emoji">🔄</span>Background Jobs & Cron</h2>
+            <h3>Scheduled Commands (app/Console/Kernel.php)</h3>
+            <ul>
+                <li><code>autoDaily:cron</code> - Daily automated tasks</li>
+                <li><code>autoWeekly:cron</code> - Weekly automated tasks</li>
+                <li><code>autoMonthly:cron</code> - Monthly automated tasks</li>
+                <li><code>purge:soft-deleted</code> - Clean up soft-deleted records</li>
+                <li><code>notifications:cleanup</code> - Clean up old notifications</li>
+                <li><code>watchdog:report</code> - Security monitoring</li>
+            </ul>
+            <h3>Queue Jobs (app/Jobs/)</h3>
+            <ul>
+                <li><code>SendNotificationPush</code> - Send push notifications</li>
+                <li><code>SendPushNotificationUsingNode</code> - Node.js-based notifications</li>
+                <li><code>SendBufferedMailJob</code> - Buffered email sending</li>
+                <li><code>MessagesAudioToTextConverstionJob</code> - Audio transcription</li>
+            </ul>
+        </section>
+
+        <!-- API Versioning -->
+        <section id="api" style="--delay: 9">
+            <h2><span class="emoji">📡</span>API Versioning</h2>
+            <h3>API V1 (routes/api.php)</h3>
+            <ul>
+                <li>Original API endpoints</li>
+                <li>Legacy routes</li>
+                <li>Most endpoints still active</li>
+            </ul>
+            <h3>API V2 (routes/api_V2.php)</h3>
+            <ul>
+                <li>Enhanced version with middleware</li>
+                <li>Better error handling</li>
+                <li>Route logging</li>
+                <li>Request normalization</li>
+                <li>Malicious request blocking</li>
+            </ul>
+            <h3>API V3 (routes/api_V3.php)</h3>
+            <ul>
+                <li>Latest version</li>
+                <li>Currently minimal (ticket endpoints)</li>
+                <li>Future migration target</li>
+            </ul>
+        </section>
+
+        <!-- Notifications -->
+        <section id="notifications" style="--delay: 10">
+            <h2><span class="emoji">🔔</span>Notification System</h2>
+            <h3>Push Notifications</h3>
+            <ul>
+                <li><strong>Firebase Cloud Messaging (FCM)</strong></li>
+                <li>Topic-based subscriptions</li>
+                <li>User-specific notifications</li>
+                <li>Scheduled notifications via cron</li>
+            </ul>
+            <h3>Notification Types</h3>
+            <ul>
+                <li>Ticket updates</li>
+                <li>New messages</li>
+                <li>Time tracking reminders</li>
+                <li>Work plan notifications</li>
+                <li>Holiday approvals</li>
+                <li>Task due date reminders</li>
+            </ul>
+            <h3>Notification Endpoints</h3>
+            <ul>
+                <li><code>POST /api/notification</code> - Send notification</li>
+                <li><code>POST /api/update-notification</code> - Update notification</li>
+                <li><code>POST /api/all-notification</code> - Get all notifications</li>
+                <li><code>GET /api/notification-cron</code> - Cron-triggered notifications</li>
+            </ul>
+        </section>
+
+        <!-- Calendar -->
+        <section id="calendar" style="--delay: 11">
+            <h2><span class="emoji">📅</span>Calendar Integration</h2>
+            <h3>Google Calendar</h3>
+            <ul>
+                <li>Sync resource bookings with Google Calendar</li>
+                <li>Create/update/delete events</li>
+                <li>Check availability from Google Calendar</li>
+                <li>Two-way sync support</li>
+            </ul>
+            <h3>Calendar Endpoints</h3>
+            <ul>
+                <li><code>POST /api/google-calendar-list</code> - List calendars</li>
+                <li><code>POST /api/google-calendar-event</code> - Create/update event</li>
+                <li><code>POST /api/sync-google-calendar</code> - Sync events</li>
+            </ul>
+        </section>
+
+        <!-- Development Setup -->
+        <section id="setup" style="--delay: 12">
+            <h2><span class="emoji">🛠️</span>Development Setup</h2>
+            <h3>Prerequisites</h3>
+            <ol>
+                <li>PHP 8.2+</li>
+                <li>Composer</li>
+                <li>MySQL (2 databases)</li>
+                <li>Node.js (for some notification jobs)</li>
+                <li>Laravel Passport setup</li>
+            </ol>
+            <h3>Installation Steps</h3>
+            <ol>
+                <li>Clone repository</li>
+                <li>Copy <code>.env.example</code> to <code>.env</code></li>
+                <li>Create 2 databases (primary and secondary)</li>
+                <li>Configure <code>.env</code> with database credentials:
+                    <ul>
+                        <li><code>DB_CONNECTION</code> and <code>DB_CONNECTION_SECOND</code></li>
+                        <li><code>DB_HOST</code>, <code>DB_DATABASE</code>, etc.</li>
+                        <li><code>DB_HOST_SECOND</code>, <code>DB_DATABASE_SECOND</code>, etc.</li>
+                    </ul>
+                </li>
+                <li>Run <code>composer install</code></li>
+                <li>Run <code>php artisan key:generate</code></li>
+                <li>Run <code>php artisan migrate</code></li>
+                <li>Run <code>php artisan passport:install</code></li>
+                <li>Run <code>php artisan storage:link</code></li>
+                <li>Configure FCM key in <code>.env</code> (<code>FCMKEY</code>)</li>
+            </ol>
+            <h3>Important Commands</h3>
+            <pre><code># Clear caches
+php artisan optimize
+php artisan cache:clear
+php artisan route:cache
+php artisan config:cache
+
+# After code updates
+php artisan optimize && php artisan route:cache
+
+# Run migrations
+php artisan migrate
+
+# Install Passport
+php artisan passport:install</code></pre>
+        </section>
+
+        <!-- Critical Areas -->
+        <section id="critical" style="--delay: 13">
+            <h2><span class="emoji">🚨</span>Critical Areas to Understand</h2>
+            <div class="module-card">
+                <h3>1. Instance-Based Multi-Tenancy</h3>
+                <ul>
+                    <li><strong>Every query must filter by <code>instance_id</code></strong></li>
+                    <li>Users, tickets, resources are instance-specific</li>
+                    <li>Missing instance_id filters = data leakage risk</li>
+                </ul>
+            </div>
+            <div class="module-card">
+                <h3>2. Dual Database Connections</h3>
+                <ul>
+                    <li>Some models use <code>mysql_data</code> connection</li>
+                    <li>Check model's <code>$connection</code> property</li>
+                    <li>Resources, services, bookings use secondary DB</li>
+                </ul>
+            </div>
+            <div class="module-card">
+                <h3>3. Ticket Workflow</h3>
+                <ul>
+                    <li>Tickets have statuses, priorities, categories</li>
+                    <li>Tasks can be created within tickets</li>
+                    <li>Messages are linked to tickets</li>
+                    <li>Time tracking is per ticket</li>
+                </ul>
+            </div>
+            <div class="module-card">
+                <h3>4. Resource Booking Logic</h3>
+                <ul>
+                    <li>Resources have availability dates/times</li>
+                    <li>Services are linked to resources</li>
+                    <li>Groups can contain multiple resources</li>
+                    <li>Google Calendar sync affects availability</li>
+                </ul>
+            </div>
+            <div class="module-card">
+                <h3>5. Notification System</h3>
+                <ul>
+                    <li>FCM tokens stored per user</li>
+                    <li>Topics for broadcast notifications</li>
+                    <li>Cron jobs trigger scheduled notifications</li>
+                    <li>Background jobs handle sending</li>
+                </ul>
+            </div>
+            <div class="module-card">
+                <h3>6. Time Tracking</h3>
+                <ul>
+                    <li>Two types: Ticket time tracking & User time tracking</li>
+                    <li>Daily/monthly time sheets generated</li>
+                    <li>Work plans track planned vs actual time</li>
+                    <li>Overtime calculations</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Code Patterns -->
+        <section id="patterns" style="--delay: 14">
+            <h2><span class="emoji">📝</span>Code Patterns & Conventions</h2>
+            <h3>Response Format</h3>
+            <pre><code>// Success response
+return $this->sendResponse($data, 'Success message');
+
+// Error response
+return $this->sendError('Error message', 400);</code></pre>
+            <h3>Instance Filtering</h3>
+            <pre><code>// Always filter by instance_id
+$tickets = Ticket::where('instance_id', $instanceId)->get();</code></pre>
+            <h3>Database Connection</h3>
+            <pre><code>// Models using secondary DB
+protected $connection = 'mysql_data';</code></pre>
+            <h3>Validation</h3>
+            <ul>
+                <li>Use Form Request classes for complex validation</li>
+                <li>Use <code>Validator::make()</code> for simple validation</li>
+            </ul>
+        </section>
+
+        <!-- Key Files -->
+        <section id="files" style="--delay: 15">
+            <h2><span class="emoji">🔍</span>Key Files to Study</h2>
+            <ol>
+                <li><strong>app/Ticket.php</strong> - Core ticket model</li>
+                <li><strong>app/Models/User.php</strong> - User model with relationships</li>
+                <li><strong>app/Http/Controllers/TicketController.php</strong> - Ticket CRUD operations</li>
+                <li><strong>app/Http/Controllers/ResourcesEventsController.php</strong> - Booking logic</li>
+                <li><strong>app/Http/Controllers/NotificationController.php</strong> - Notification system</li>
+                <li><strong>routes/api.php</strong> - All API endpoints</li>
+                <li><strong>config/database.php</strong> - Database configuration</li>
+                <li><strong>app/Console/Kernel.php</strong> - Scheduled tasks</li>
+            </ol>
+        </section>
+
+        <!-- Common Issues -->
+        <section id="issues" style="--delay: 16">
+            <h2><span class="emoji">🐛</span>Common Issues & Solutions</h2>
+            <div class="module-card">
+                <h3>Issue: Data Leakage Between Instances</h3>
+                <p><strong>Solution:</strong> Always filter by <code>instance_id</code> in queries</p>
+            </div>
+            <div class="module-card">
+                <h3>Issue: Wrong Database Connection</h3>
+                <p><strong>Solution:</strong> Check model's <code>$connection</code> property</p>
+            </div>
+            <div class="module-card">
+                <h3>Issue: Passport Token Errors</h3>
+                <p><strong>Solution:</strong> Run <code>php artisan passport:install</code> and clear cache</p>
+            </div>
+            <div class="module-card">
+                <h3>Issue: FCM Notifications Not Working</h3>
+                <p><strong>Solution:</strong> Check <code>FCMKEY</code> in <code>.env</code> and user's <code>fcm_token</code></p>
+            </div>
+            <div class="module-card">
+                <h3>Issue: Google Calendar Sync Failing</h3>
+                <p><strong>Solution:</strong> Verify Google API credentials and user access tokens</p>
+            </div>
+        </section>
+
+        <!-- Data Flow -->
+        <section id="flow" style="--delay: 17">
+            <h2><span class="emoji">📊</span>Data Flow Examples</h2>
+            <div class="module-card">
+                <h3>Creating a Ticket</h3>
+                <ol>
+                    <li>User sends POST to <code>/api/ticket</code></li>
+                    <li>Validate request (email, title, instance_id, etc.)</li>
+                    <li>Create Ticket record</li>
+                    <li>Create Tasks if provided</li>
+                    <li>Create TicketInformation if location provided</li>
+                    <li>Generate QR code</li>
+                    <li>Send notifications to assigned users</li>
+                    <li>Return ticket data</li>
+                </ol>
+            </div>
+            <div class="module-card">
+                <h3>Booking a Resource</h3>
+                <ol>
+                    <li>Check availability (<code>/api/getAvailableResource</code>)</li>
+                    <li>Get available times (<code>/api/getAvailableTimes</code>)</li>
+                    <li>Create booking (<code>POST /api/resources-events</code>)</li>
+                    <li>Link services to booking</li>
+                    <li>Sync with Google Calendar (if enabled)</li>
+                    <li>Send confirmation notification</li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- Learning Path -->
+        <section id="learning" style="--delay: 18">
+            <h2><span class="emoji">🎓</span>Learning Path for New Developers</h2>
+            <div class="module-card">
+                <h3>Week 1: Foundation</h3>
+                <ol>
+                    <li>Understand multi-tenancy concept</li>
+                    <li>Study User and Ticket models</li>
+                    <li>Review authentication flow</li>
+                    <li>Understand instance_id filtering</li>
+                </ol>
+            </div>
+            <div class="module-card">
+                <h3>Week 2: Core Modules</h3>
+                <ol>
+                    <li>Ticket management workflow</li>
+                    <li>Message system</li>
+                    <li>Time tracking logic</li>
+                    <li>Notification system basics</li>
+                </ol>
+            </div>
+            <div class="module-card">
+                <h3>Week 3: Advanced Features</h3>
+                <ol>
+                    <li>Resource booking system</li>
+                    <li>Google Calendar integration</li>
+                    <li>Work plans</li>
+                    <li>Poll system</li>
+                </ol>
+            </div>
+            <div class="module-card">
+                <h3>Week 4: System Integration</h3>
+                <ol>
+                    <li>Background jobs</li>
+                    <li>Cron jobs</li>
+                    <li>API versioning</li>
+                    <li>Error handling</li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- Support -->
+        <section id="support" style="--delay: 19">
+            <h2><span class="emoji">📞</span>Support & Resources</h2>
+            <h3>Configuration Files</h3>
+            <ul>
+                <li><code>config/constants.php</code> - Application constants</li>
+                <li><code>config/google-calendar.php</code> - Google Calendar settings</li>
+                <li><code>.env</code> - Environment variables</li>
+            </ul>
+            <h3>Documentation</h3>
+            <ul>
+                <li>Check <code>draft/</code> folder for API documentation (YAML files)</li>
+                <li>Review migration files for database schema</li>
+                <li>Check controller comments for endpoint documentation</li>
+            </ul>
+        </section>
+
+        <!-- Important Notes -->
+        <section id="notes" style="--delay: 20">
+            <h2><span class="emoji">⚠️</span>Important Notes</h2>
+            <ol>
+                <li><strong>Never remove instance_id filtering</strong> - This breaks multi-tenancy</li>
+                <li><strong>Always test with multiple instances</strong> - Ensure data isolation</li>
+                <li><strong>Check database connection</strong> - Some models use <code>mysql_data</code></li>
+                <li><strong>Clear cache after config changes</strong> - Use <code>php artisan config:cache</code></li>
+                <li><strong>Passport tokens expire</strong> - Handle token refresh in frontend</li>
+                <li><strong>FCM tokens can be null</strong> - Always check before sending notifications</li>
+                <li><strong>Google Calendar requires OAuth</strong> - Users must authorize access</li>
+                <li><strong>370+ migrations</strong> - Be careful with migration order</li>
+            </ol>
+        </section>
+
+        <!-- Next Steps -->
+        <section id="next" style="--delay: 21">
+            <h2><span class="emoji">🚀</span>Next Steps</h2>
+            <ol>
+                <li>Set up local development environment</li>
+                <li>Review existing tickets/issues in the system</li>
+                <li>Study the most frequently used endpoints</li>
+                <li>Understand the frontend integration points</li>
+                <li>Review error logs and common issues</li>
+                <li>Familiarize yourself with the database schema</li>
+                <li>Test all critical workflows</li>
+            </ol>
+            <p style="text-align: center; font-size: 1.5rem; margin-top: 2rem; color: var(--primary-color);">
+                <strong>Good luck with your development journey! 🎉</strong>
+            </p>
+        </section>
+        </main>
+    </div>
+
+    <!-- Scroll to top button -->
+    <div class="scroll-top" id="scrollTop" onclick="scrollToTop()">
+        <span style="font-size: 1.5rem;">↑</span>
+    </div>
+
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Scroll progress bar
+        function updateProgressBar() {
+            const windowHeight = window.innerHeight;
+            const documentHeight = document.documentElement.scrollHeight;
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollPercent = (scrollTop / (documentHeight - windowHeight)) * 100;
+            document.getElementById('progressBar').style.width = scrollPercent + '%';
+        }
+
+        // Show/hide scroll to top button
+        function toggleScrollTop() {
+            const scrollTop = document.getElementById('scrollTop');
+            if (window.pageYOffset > 300) {
+                scrollTop.classList.add('visible');
+            } else {
+                scrollTop.classList.remove('visible');
+            }
+        }
+
+        // Scroll to top function
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Toggle sidebar on mobile
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        // Set active link in sidebar
+        function setActiveLink(element) {
+            // Remove active class from all links
+            document.querySelectorAll('.toc a').forEach(link => {
+                link.classList.remove('active');
+            });
+            // Add active class to clicked link
+            element.classList.add('active');
+            
+            // Close sidebar on mobile after clicking
+            if (window.innerWidth <= 1024) {
+                setTimeout(() => {
+                    document.getElementById('sidebar').classList.remove('open');
+                }, 300);
+            }
+        }
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Highlight active section in sidebar on scroll
+        function updateActiveSection() {
+            const sections = document.querySelectorAll('section[id]');
+            const tocLinks = document.querySelectorAll('.toc a');
+            
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (window.pageYOffset >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            tocLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        // Intersection Observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all sections
+        document.querySelectorAll('section').forEach(section => {
+            observer.observe(section);
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const menuToggle = document.getElementById('menuToggle');
+            
+            if (window.innerWidth <= 1024) {
+                if (sidebar.classList.contains('open') && 
+                    !sidebar.contains(event.target) && 
+                    !menuToggle.contains(event.target)) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        });
+
+        // Initialize
+        createParticles();
+        window.addEventListener('scroll', () => {
+            updateProgressBar();
+            toggleScrollTop();
+            updateActiveSection();
+        });
+        updateProgressBar();
+        updateActiveSection();
+    </script>
+</body>
+</html>
